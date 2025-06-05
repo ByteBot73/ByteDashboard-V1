@@ -97,9 +97,38 @@ let botGuildsCacheTime = 0;
 const BOT_GUILDS_CACHE_DURATION = 10 * 60 * 1000; // 10 minutes
 let botGuildsCacheStale = false; // Track if cache is stale due to rate limit
 
-// API: Get user's owned guilds with bot presence info
+// --- Client-side rate limiting for /api/guilds ---
+const clientRateLimit = {
+  windowMs: 60 * 1000, // 1 minute
+  maxRequests: 5, // max 5 requests per minute per user
+  users: new Map(), // userId -> { count, firstRequestTime, backoffMs }
+};
+
+function getUserId(req) {
+  // Use Discord user id if available, else session id
+  return req.user && req.user.id ? req.user.id : req.sessionID;
+}
+
 app.get('/api/guilds', async (req, res) => {
   if (!req.isAuthenticated()) return res.status(401).json({ error: 'Not logged in' });
+  const userId = getUserId(req);
+  const now = Date.now();
+  let userData = clientRateLimit.users.get(userId);
+  if (!userData || now - userData.firstRequestTime > clientRateLimit.windowMs) {
+    userData = { count: 0, firstRequestTime: now, backoffMs: 0 };
+    clientRateLimit.users.set(userId, userData);
+  }
+  // Exponential backoff if user was rate limited
+  if (userData.backoffMs && now < userData.backoffMs) {
+    const wait = Math.ceil((userData.backoffMs - now) / 1000);
+    return res.status(429).json({ error: `Too many requests. Please wait ${wait} seconds before retrying.` });
+  }
+  userData.count++;
+  if (userData.count > clientRateLimit.maxRequests) {
+    // Set exponential backoff (double each time, max 10 min)
+    userData.backoffMs = now + Math.min((userData.backoffMs ? (userData.backoffMs - now) * 2 : 10000), 10 * 60 * 1000);
+    return res.status(429).json({ error: 'Too many requests. Please wait before retrying.' });
+  }
   try {
     const now = Date.now();
     let botGuilds;
