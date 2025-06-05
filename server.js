@@ -132,11 +132,19 @@ app.get('/api/guilds', async (req, res) => {
         }
         if (err.response && err.response.status === 429) {
           botGuildsCacheStale = true; // Mark cache as stale
+          // Use Discord's Retry-After header if present
+          let retryAfter = 60; // default 60s
+          if (err.response.headers && err.response.headers['retry-after']) {
+            retryAfter = parseInt(err.response.headers['retry-after'], 10);
+            if (isNaN(retryAfter)) retryAfter = 60;
+          }
+          // Set cache time to now + retryAfter to avoid spamming API
+          botGuildsCacheTime = Date.now() + retryAfter * 1000 - BOT_GUILDS_CACHE_DURATION;
           // Serve stale cache if available
           if (botGuildsCache.length > 0) {
             botGuilds = botGuildsCache;
           } else {
-            return res.status(429).json({ error: 'Rate limited by Discord. Please try again in a few minutes.' });
+            return res.status(429).json({ error: `Rate limited by Discord. Please try again in ${retryAfter} seconds.` });
           }
         } else {
           throw err;
