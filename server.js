@@ -60,21 +60,21 @@ app.get('/', (req, res) => {
 
 // Discord OAuth2 login
 app.get('/login', passport.authenticate('discord'));
-// app.get('/callback', (req, res, next) => {
-//   passport.authenticate('discord', { failureRedirect: '/' }, (err, user, info) => {
-//     if (user && user.rateLimited) {
-//       // Show user-friendly rate limit page
-//       return res.redirect('/login-rate-limit');
-//     }
-//     if (err || !user) {
-//       return res.redirect('/');
-//     }
-//     req.logIn(user, (err) => {
-//       if (err) return res.redirect('/');
-//       res.redirect('/servers');
-//     });
-//   })(req, res, next);
-// });
+app.get('/callback', (req, res, next) => {
+  passport.authenticate('discord', { failureRedirect: '/' }, (err, user, info) => {
+    if (user && user.rateLimited) {
+      // Show user-friendly rate limit page
+      return res.redirect('/login-rate-limit');
+    }
+    if (err || !user) {
+      return res.redirect('/');
+    }
+    req.logIn(user, (err) => {
+      if (err) return res.redirect('/');
+      res.redirect('/servers');
+    });
+  })(req, res, next);
+});
 
 // Logout
 app.get('/logout', (req, res) => {
