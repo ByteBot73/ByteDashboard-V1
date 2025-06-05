@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Your Discord Servers</title>
+  <link rel="stylesheet" href="/styles/main.css" />
+  <style>
+    body {
+      background: linear-gradient(135deg, #232526 0%, #414345 100%);
+      min-height: 100vh;
+      margin: 0;
+      font-family: 'Segoe UI', 'Roboto', Arial, sans-serif;
+    }
+    .servers-container {
+      max-width: 900px;
+      margin: 3rem auto;
+      background: rgba(255,255,255,0.04);
+      border-radius: 18px;
+      box-shadow: 0 8px 32px 0 rgba(31,38,135,0.18);
+      padding: 2.5rem 2rem 2rem 2rem;
+      border: 1px solid rgba(255,255,255,0.08);
+      backdrop-filter: blur(6px);
+    }
+    .servers-title {
+      color: #fff;
+      font-size: 2.2em;
+      font-weight: 700;
+      margin-bottom: 1.2em;
+      text-align: center;
+      letter-spacing: 1px;
+    }
+    .server-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 1.5rem;
+      justify-content: center;
+    }
+    .server-card {
+      background: rgba(44,47,51,0.95);
+      border-radius: 12px;
+      box-shadow: 0 2px 8px rgba(31,38,135,0.10);
+      padding: 1.5rem 1.2rem;
+      min-width: 260px;
+      max-width: 320px;
+      flex: 1 1 260px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      border: 1px solid rgba(255,255,255,0.06);
+      transition: box-shadow 0.2s, border 0.2s;
+    }
+    .server-card:hover {
+      box-shadow: 0 4px 16px rgba(114,137,218,0.18);
+      border: 1.5px solid #7289da;
+    }
+    .server-icon {
+      width: 64px;
+      height: 64px;
+      border-radius: 50%;
+      margin-bottom: 1em;
+      background: #23272a;
+      object-fit: cover;
+      border: 2px solid #7289da;
+    }
+    .server-name {
+      color: #fff;
+      font-size: 1.15em;
+      font-weight: 600;
+      margin-bottom: 0.7em;
+      text-align: center;
+      word-break: break-word;
+    }
+    .server-action {
+      margin-top: 1em;
+      padding: 0.6em 1.5em;
+      border-radius: 8px;
+      font-weight: 600;
+      font-size: 1em;
+      border: none;
+      cursor: pointer;
+      background: linear-gradient(90deg, #7289da 0%, #99aab5 100%);
+      color: #fff;
+      box-shadow: 0 2px 8px rgba(114,137,218,0.10);
+      transition: background 0.2s;
+      text-decoration: none;
+      display: inline-block;
+    }
+    .server-action.invite {
+      background: linear-gradient(90deg, #43e97b 0%, #38f9d7 100%);
+      color: #23272a;
+    }
+    .server-action.invite:hover {
+      background: linear-gradient(90deg, #38f9d7 0%, #43e97b 100%);
+    }
+    .server-action.configure {
+      background: linear-gradient(90deg, #7289da 0%, #99aab5 100%);
+    }
+    .server-action.configure:hover {
+      background: linear-gradient(90deg, #99aab5 0%, #7289da 100%);
+    }
+    .nav {
+      width: 100%;
+      display: flex;
+      justify-content: flex-end;
+      padding: 1.2em 2em 0 0;
+    }
+    .nav-logout {
+      color: #fff;
+      background: none;
+      border: 1.5px solid #7289da;
+      border-radius: 6px;
+      padding: 0.4em 1.2em;
+      font-size: 1em;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.2s, color 0.2s;
+      text-decoration: none;
+    }
+    .nav-logout:hover {
+      background: #7289da;
+      color: #fff;
+    }
+    @media (max-width: 600px) {
+      .servers-container { padding: 1rem 0.2rem; }
+      .server-card { min-width: 90vw; max-width: 98vw; }
+    }
+  </style>
+</head>
+<body>
+  <div class="nav">
+    <a class="nav-logout" href="/logout">Logout</a>
+  </div>
+  <div class="servers-container">
+    <div class="servers-title">Your Discord Servers</div>
+    <div id="server-list" class="server-list">
+      <div style="color:#fff;opacity:0.7;">Loading your servers...</div>
+    </div>
+  </div>
+  <script>
+    fetch('/api/guilds')
+      .then(res => res.json())
+      .then(data => {
+        const list = document.getElementById('server-list');
+        if (!data.guilds || data.guilds.length === 0) {
+          list.innerHTML = '<div style="color:#fff;opacity:0.7;">No servers found where you are the owner.</div>';
+          return;
+        }
+        list.innerHTML = '';
+        data.guilds.forEach(guild => {
+          const iconUrl = guild.icon
+            ? `https://cdn.discordapp.com/icons/${guild.id}/${guild.icon}.png?size=128`
+            : 'https://cdn.discordapp.com/embed/avatars/0.png';
+          const card = document.createElement('div');
+          card.className = 'server-card';
+          card.innerHTML = `
+            <img class="server-icon" src="${iconUrl}" alt="Server Icon" />
+            <div class="server-name">${guild.name}</div>
+            ${guild.botInGuild
+              ? `<a class="server-action configure" href="#">Configure Server</a>`
+              : `<a class="server-action invite" href="https://discord.com/oauth2/authorize?client_id=${encodeURIComponent('${process.env.DISCORD_CLIENT_ID}')}&scope=bot+applications.commands&permissions=8&guild_id=${guild.id}" target="_blank">Invite to Server</a>`
+            }
+          `;
+          list.appendChild(card);
+        });
+      })
+      .catch(() => {
+        document.getElementById('server-list').innerHTML = '<div style="color:#ff4e4e;">Failed to load servers. Please try again later.</div>';
+      });
+  </script>
+</body>
+</html>

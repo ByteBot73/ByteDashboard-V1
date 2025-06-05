@@ -1,0 +1,48 @@
+body {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #232526 0%, #414345 100%);
+  font-family: 'Segoe UI', 'Roboto', Arial, sans-serif;
+  margin: 0;
+}
+.rate-limit-container {
+  background: rgba(255,255,255,0.04);
+  border-radius: 18px;
+  box-shadow: 0 8px 32px 0 rgba(31,38,135,0.37);
+  padding: 3rem 2.5rem;
+  text-align: center;
+  max-width: 420px;
+  border: 1px solid rgba(255,255,255,0.08);
+  backdrop-filter: blur(6px);
+}
+.rate-limit-title {
+  color: #ff4e4e;
+  font-size: 2.2em;
+  margin-bottom: 0.5em;
+  font-weight: 700;
+  letter-spacing: 1px;
+}
+.rate-limit-desc {
+  color: #fff;
+  font-size: 1.15em;
+  margin-bottom: 2em;
+  line-height: 1.5;
+}
+.rate-limit-home {
+  display: inline-block;
+  padding: 0.7em 2em;
+  background: linear-gradient(90deg, #7289da 0%, #99aab5 100%);
+  color: #fff;
+  border-radius: 8px;
+  text-decoration: none;
+  font-weight: 600;
+  font-size: 1em;
+  transition: background 0.2s;
+  box-shadow: 0 2px 8px rgba(114,137,218,0.15);
+}
+.rate-limit-home:hover {
+  background: linear-gradient(90deg, #99aab5 0%, #7289da 100%);
+}
